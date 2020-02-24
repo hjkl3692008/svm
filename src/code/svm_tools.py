@@ -52,7 +52,28 @@ def heat_map(data, title='heat map table'):
     plt.show()
 
 
-#
+# calculate w by xs, class, ais
+def calculate_w(xs, cs, ais):
+    css = np.tile(cs, (xs.shape[1], 1)).T
+    xc = np.multiply(xs, css)
+    w = np.dot(ais, xc)
+    return w
+
+
+# return index of a which >0
+def find_great_than_zero_a(ais):
+    for i in range(0, ais.shape[0]):
+        if ais[i] > 0:
+            return i
+
+
+# calculate b by ais, c, w, x (only need one point which ai>0)
+def calculate_b(ais, cs, w, xs):
+    index = find_great_than_zero_a(ais)
+    c = cs[index]
+    x = xs[index]
+    b = c - np.dot(w, x)
+    return b
 
 
 # category
