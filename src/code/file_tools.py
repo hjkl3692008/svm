@@ -60,4 +60,4 @@ def drop_question(df):
     df = df.dropna()
     df['Bare Nuclei'] = pd.to_numeric(df['Bare Nuclei'])
     return df
-
+# todo:// how to complement data

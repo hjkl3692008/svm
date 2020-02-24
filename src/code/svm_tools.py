@@ -36,9 +36,6 @@ def split_train_test(d, percentage=0.9, is_save=False):
     return train_data, test_data, train_index, test_index
 
 
-# todo:// how to complement data
-
-
 # heat_map  data(dataFrame)
 def heat_map(data, title='heat map table'):
     # get basic parameters from data
@@ -53,6 +50,33 @@ def heat_map(data, title='heat map table'):
     ax.set_title(title)
 
     plt.show()
+
+
+#
+
+
+# category
+def svm_category(w, xs):
+    categories = np.zeros(xs.shape[0])
+    dim = xs.ndim
+    if dim == 1:
+        categories[0] = category_one(w, xs)
+    else:
+        n, d = xs.shape
+        for i in range(0, n):
+            categories[i] = category_one(w, xs[i].T)
+
+
+# category one data
+def category_one(w, x):
+    wx = np.dot(w, x.T)
+    cate = sign(wx)
+    return cate
+
+
+# sign
+def sign(df):
+    return np.sign(df)
 
 
 # false positive, false negative, true positive, true negative
