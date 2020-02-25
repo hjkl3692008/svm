@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 import file_tools as ft
+import smo
 
 
 # split train data and test data
@@ -52,28 +53,21 @@ def heat_map(data, title='heat map table'):
     plt.show()
 
 
-# calculate w by xs, class, ais
-def calculate_w(xs, cs, ais):
-    css = np.tile(cs, (xs.shape[1], 1)).T
-    xc = np.multiply(xs, css)
-    w = np.dot(ais, xc)
-    return w
+# svm
+def svm():
+    # load data
+    cancer_data = ft.load_cancer()
+    # change class to binary code
+    last_col = cancer_data.shape[1] - 1
+    cancer_data[:, last_col][cancer_data[:, last_col] == 2] = -1
+    cancer_data[:, last_col][cancer_data[:, last_col] == 4] = 1
 
+    y = cancer_data[:, last_col]
+    x = cancer_data[:, 1:last_col]
 
-# return index of a which >0
-def find_great_than_zero_a(ais):
-    for i in range(0, ais.shape[0]):
-        if ais[i] > 0:
-            return i
-
-
-# calculate b by ais, c, w, x (only need one point which ai>0)
-def calculate_b(ais, cs, w, xs):
-    index = find_great_than_zero_a(ais)
-    c = cs[index]
-    x = xs[index]
-    b = c - np.dot(w, x)
-    return b
+    w, b = smo.SMO(x, y, iteration=1000, c=1)
+    print(w)
+    print(b)
 
 
 # category
@@ -121,20 +115,6 @@ def fpntpn(d, c=None):
             else:
                 fp = fp + 1
     return fp, fn, tp, tn
-
-
-# fpntpn digit from 0~9
-def fpntpn_digit(d):
-    c_range = range(0, 10)
-    fpntpn_list = np.array([])
-    for c in c_range:
-        fp, fn, tp, tn = fpntpn(d, c)
-        ftpn = np.array([fp, fn, tp, tn])
-        if c == 0:
-            fpntpn_list = ftpn
-        else:
-            fpntpn_list = np.hstack((fpntpn_list, ftpn))
-    return fpntpn_list
 
 
 # sensitivity & specificity & accuracy
