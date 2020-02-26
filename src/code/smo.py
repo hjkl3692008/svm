@@ -4,26 +4,38 @@ import random
 
 # SMO
 def SMO(x, y, iteration=1000, c=1):
-    w, b, a = init_wba(x.shape[1])
+    w, b, a = init_wba(x)
     e, u = update_e(w, x, b, y)
 
-    for i in range(0, iteration):
-        a1_old = find_a1(a, y, u, c)
-        a2_old = find_a2(w, x, b, y, u, c, a, a1_old)
-        a1_new, a2_new = update_Ls(w, x, b, y, c, a, a1_old, a2_old)
-        a[a1_old] = a1_new
-        a[a2_old] = a2_new
-        w = update_w(x, y, a)
-        b = update_b(a, y, w, x)
-        e, u = update_e(w, x, b, y)
-
+    i = 0
+    while i < iteration:
+        a_changed = 0
+        for j in range(0, x.shape[0]):
+            i = i + 1
+            a1_old = find_a1(a, y, u, c)
+            a2_old = find_a2(w, x, b, y, u, c, a, a1_old)
+            a1_new, a2_new = update_Ls(w, x, b, y, c, a, a1_old, a2_old)
+            if a[a1_old] != a1_new or a[a2_old] != a2_new:
+                a_changed = a_changed + 1
+            a1_old_v = a[a1_old]
+            a2_old_v = a[a2_old]
+            a[a1_old] = a1_new
+            a[a2_old] = a2_new
+            w = update_w(x, y, a)
+            # b = update_b(a, y, w, x)
+            e, u = update_e(w, x, b, y)
+            b = update_b(x, b, y, e, a1_old, a2_old, a1_old_v, a2_old_v, a1_new, a2_new)
+        # if a never changes in a entire loop, break
+        if a_changed == 0:
+            break
+    print('total iteration:'+str(i))
     return w, b
 
 
-def init_wba(length):
-    w = np.zeros(length)
+def init_wba(x):
+    w = np.zeros(x.shape[1])
     b = 0
-    a = np.ones(length)
+    a = np.ones(x.shape[0])
     return w, b, a
 
 
@@ -36,29 +48,37 @@ def update_w(x, y, a):
 
 
 # return index of a which >0
-def find_great_than_zero_a(ais):
-    for i in range(0, ais.shape[0]):
-        if ais[i] > 0:
+def find_great_than_zero_a(a):
+    for i in range(0, a.shape[0]):
+        if a[i] > 0:
             return i
 
 
 # update b by ais, c, w, x (only need one point which ai>0)
-def update_b(a, y, w, x):
-    index = find_great_than_zero_a(a)
-    yi = y[index]
-    xi = x[index]
-    b = yi - np.dot(w, xi)
+# def update_b(a, y, w, x):
+#     index = find_great_than_zero_a(a)
+#     yi = y[index]
+#     xi = x[index]
+#     b = yi - np.dot(w, xi)
+#     return b
+def update_b(x, b, y, e, a1, a2, a1_old, a2_old, a1_new, a2_new):
+    x1 = x[a1]
+    x2 = x[a2]
+    y1 = y[a1]
+    y2 = y[a2]
+    e1 = e[a1]
+    b = b - e1 - y1 * np.dot(x1, x1) * (a1_new - a1_old) - y2 * np.dot(x1, x2) * (a2_new - a2_old)
     return b
 
 
 # whether meet KTT condition
 def ktt(ai, yi, ui, c):
     is_meet = False
-    if ai == 0 and yi * ui >= 1:
+    if ai == 0 and yi * ui >= 1:  # normal category inner
         is_meet = True
-    elif 0 < ai < c and yi * ui == 1:
+    elif 0 < ai < c and yi * ui == 1:  # support vector
         is_meet = True
-    elif ai == c and yi * ui <= 1:
+    elif ai == c and yi * ui <= 1:  # abnormal category outer
         is_meet = True
     return is_meet
 
@@ -72,6 +92,9 @@ def find_a1(a, y, u, c):
         is_meet = ktt(ai, yi, ui, c)
         if not is_meet:
             return i
+
+    rand = random_num(-1, y.shape[0])
+    return rand
 
 
 # find a2, in which |e1 - e2|max
@@ -97,6 +120,7 @@ def find_a2(w, x, b, y, u, c, a, a1):
         e2 = Ei(w, x[i], b, y[i])
         diff = np.abs(e1 - e2)
         if diff > max_value:
+            max_value = diff
             max_index = i
 
     return max_index
