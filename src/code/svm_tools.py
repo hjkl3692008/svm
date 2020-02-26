@@ -9,7 +9,7 @@ import smo
 
 
 # split train data and test data
-def split_train_test(d, percentage=0.9, is_save=False):
+def split_train_test(d, percentage=0.9):
     # num of total data
     shape = d.shape
     num = shape[0]
@@ -29,10 +29,6 @@ def split_train_test(d, percentage=0.9, is_save=False):
     # split data
     train_data = d[train_index]
     test_data = d[test_index]
-
-    # save data
-    if is_save:
-        ft.save_pima(train_data, test_data)
 
     return train_data, test_data, train_index, test_index
 
@@ -54,7 +50,7 @@ def heat_map(data, title='heat map table'):
 
 
 # svm
-def svm(iteration=1000, c=1):
+def svm(iteration=1000, c=1, split_rate=1):
     start_time = time.time()
     # load data
     cancer_data = ft.load_cancer()
@@ -63,14 +59,23 @@ def svm(iteration=1000, c=1):
     cancer_data[:, last_col][cancer_data[:, last_col] == 2] = -1
     cancer_data[:, last_col][cancer_data[:, last_col] == 4] = 1
 
-    y = cancer_data[:, last_col]
-    x = cancer_data[:, 1:last_col]
+    if split_rate == 1:
+        train_data = cancer_data
+        test_data = cancer_data
+    else:
+        train_data, test_data, train_index, test_index = split_train_test(cancer_data, split_rate)
+
+    y = train_data[:, last_col]
+    x = train_data[:, 1:last_col]
 
     w, b = smo.SMO(x, y, iteration=iteration, c=c)
-    print('w:'+str(w))  # [ 399.  983.  931.  730.  332. 1216.  497.  834.  149.]
-    print('b:'+str(b))  # -31094.0
-    cate_y = svm_category(w, x, b)
-    fp, fn, tp, tn = fpntpn(y, cate_y)
+    print('w:'+str(w))
+    print('b:'+str(b))
+    test_y = test_data[:, last_col]
+    test_x = test_data[:, 1:last_col]
+
+    cate_y = svm_category(w, test_x, b)
+    fp, fn, tp, tn = fpntpn(test_y, cate_y)
     sen, spec, accuracy = ssa(fp, fn, tp, tn)
     print('fp: %d \nfn: %d \ntp: %d \ntn: %d \n' % (fp, fn, tp, tn))
     print('sensitivity: %1.5f \nspecificity: %1.5f \naccuracy: %1.5f \n' % (sen, spec, accuracy))

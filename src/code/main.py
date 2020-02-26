@@ -10,4 +10,4 @@ def plot_cancer_heat_map():
 if __name__ == '__main__':
     # plot correlation
     # plot_cancer_heat_map()
-    lt.svm(iteration=1000, c=1)
+    lt.svm(iteration=1000, c=0.9, split_rate=0.9)

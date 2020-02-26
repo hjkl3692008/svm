@@ -35,7 +35,7 @@ def SMO(x, y, iteration=1000, c=1):
 def init_wba(x):
     w = np.zeros(x.shape[1])
     b = 0
-    a = np.ones(x.shape[0])
+    a = np.zeros(x.shape[0])
     return w, b, a
 
 
